@@ -114,9 +114,120 @@ class PesanController extends Controller
         abort_unless($pesan->konsultasi_id === $konsultasi->id, 404);
         abort_unless($pesan->pengirim_id === $user->id, 403);
 
-        $pesan->update(['disembunyikan_oleh_pengirim' => true]);
+        if ($pesan->voice_path && Storage::disk('public')->exists($pesan->voice_path)) {
+            Storage::disk('public')->delete($pesan->voice_path);
+        }
+
+        if ($pesan->file_path && Storage::disk('public')->exists($pesan->file_path)) {
+            Storage::disk('public')->delete($pesan->file_path);
+        }
+
+        $pesan->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    public function togglePin(Konsultasi $konsultasi, Pesan $pesan)
+    {
+        $user = Auth::user();
+
+        abort_unless($pesan->konsultasi_id === $konsultasi->id, 404);
+        abort_unless(
+            $konsultasi->audiens_id === $user->id || $konsultasi->konsultan_id === $user->id,
+            403
+        );
+
+        $pesan->is_pinned = !$pesan->is_pinned;
+        $pesan->pinned_by = $pesan->is_pinned ? $user->id : null;
+        $pesan->save();
+
+        return response()->json([
+            'success' => true,
+            'is_pinned' => $pesan->is_pinned,
+        ]);
+    }
+
+    public function toggleStar(Konsultasi $konsultasi, Pesan $pesan)
+    {
+        $user = Auth::user();
+
+        abort_unless($pesan->konsultasi_id === $konsultasi->id, 404);
+        abort_unless(
+            $konsultasi->audiens_id === $user->id || $konsultasi->konsultan_id === $user->id,
+            403
+        );
+
+        $pesan->is_starred = !$pesan->is_starred;
+        $pesan->starred_by = $pesan->is_starred ? $user->id : null;
+        $pesan->save();
+
+        return response()->json([
+            'success' => true,
+            'is_starred' => $pesan->is_starred,
+        ]);
+    }
+
+    public function info(Konsultasi $konsultasi, Pesan $pesan)
+    {
+        $user = Auth::user();
+
+        abort_unless($pesan->konsultasi_id === $konsultasi->id, 404);
+        abort_unless(
+            $konsultasi->audiens_id === $user->id || $konsultasi->konsultan_id === $user->id,
+            403
+        );
+
+        return response()->json([
+            'success' => true,
+            'pesan' => [
+                'id' => $pesan->id,
+                'isi_pesan' => $pesan->isi_pesan,
+                'pengirim' => $pesan->pengirim->name,
+                'waktu_kirim' => $pesan->created_at->format('d/m/Y H:i:s'),
+                'dibaca_pada' => $pesan->dibaca_at?->format('d/m/Y H:i:s'),
+                'file_nama' => $pesan->file_nama,
+                'file_tipe' => $pesan->file_tipe,
+                'voice_path' => $pesan->voice_path,
+            ],
+        ]);
+    }
+
+    public function forward(Konsultasi $konsultasi, Pesan $pesan, Request $request)
+    {
+        $user = Auth::user();
+
+        abort_unless($pesan->konsultasi_id === $konsultasi->id, 404);
+        abort_unless(
+            $konsultasi->audiens_id === $user->id || $konsultasi->konsultan_id === $user->id,
+            403
+        );
+
+        $validated = $request->validate([
+            'target_konsultasi_id' => 'required|exists:konsultasis,id',
+        ]);
+
+        $targetKonsultasi = Konsultasi::find($validated['target_konsultasi_id']);
+        abort_unless(
+            $targetKonsultasi->audiens_id === $user->id || $targetKonsultasi->konsultan_id === $user->id,
+            403
+        );
+
+        $newPesan = Pesan::create([
+            'konsultasi_id' => $targetKonsultasi->id,
+            'pengirim_id' => $user->id,
+            'isi_pesan' => $pesan->isi_pesan,
+            'file_path' => $pesan->file_path,
+            'file_nama' => $pesan->file_nama,
+            'file_tipe' => $pesan->file_tipe,
+            'voice_path' => $pesan->voice_path,
+        ]);
+
+        broadcast(new PesanDikirim($newPesan))->toOthers();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesan berhasil diteruskan',
+        ]);
     }
 
     public function edit(Konsultasi $konsultasi, Pesan $pesan, Request $request)

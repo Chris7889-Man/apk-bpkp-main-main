@@ -40,7 +40,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/konsultasi/{konsultasi}', [KonsultasiController::class, 'destroy'])->name('konsultasi.destroy');
     Route::post('/konsultasi/{konsultasi}/pesan', [PesanController::class, 'store'])->name('pesan.store');
     Route::delete('/konsultasi/{konsultasi}/pesan/{pesan}', [PesanController::class, 'destroy'])->name('pesan.destroy');
-Route::patch('/konsultasi/{konsultasi}/pesan/{pesan}', [PesanController::class, 'edit'])->name('pesan.edit');
+    Route::patch('/konsultasi/{konsultasi}/pesan/{pesan}', [PesanController::class, 'edit'])->name('pesan.edit');
+    Route::post('/konsultasi/{konsultasi}/pesan/{pesan}/pin', [PesanController::class, 'togglePin'])->name('pesan.pin');
+    Route::post('/konsultasi/{konsultasi}/pesan/{pesan}/star', [PesanController::class, 'toggleStar'])->name('pesan.star');
+    Route::get('/konsultasi/{konsultasi}/pesan/{pesan}/info', [PesanController::class, 'info'])->name('pesan.info');
+    Route::post('/konsultasi/{konsultasi}/pesan/{pesan}/forward', [PesanController::class, 'forward'])->name('pesan.forward');
     Route::delete('/konsultasi/{konsultasi}/pesan', [PesanController::class, 'clear'])->name('pesan.clear');
 
     // Admin

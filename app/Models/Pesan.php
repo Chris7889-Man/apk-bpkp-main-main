@@ -20,6 +20,10 @@ class Pesan extends Model
         'file_tipe',
         'voice_path',
         'dibaca_at',
+        'is_pinned',
+        'is_starred',
+        'pinned_by',
+        'starred_by',
     ];
 
     protected $casts = [

@@ -75,7 +75,7 @@
                     ↩
                 </button>
 
-                <div class="pesan-bubble max-w-xs sm:max-w-sm px-4 py-2.5 shadow-sm select-none {{ $pesan->pengirim_id === auth()->id() ? 'bg-blue-600 text-white rounded-2xl rounded-br-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-bl-sm' }}"
+                <div class="pesan-bubble relative max-w-xs sm:max-w-sm px-4 py-2.5 shadow-sm select-none {{ $pesan->pengirim_id === auth()->id() ? 'bg-blue-600 text-white rounded-2xl rounded-br-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-bl-sm' }}"
                     style="-webkit-touch-callout: none; -webkit-user-select: none; touch-action: pan-y;">
 
                     @if ($pesan->balasKe)
@@ -102,16 +102,56 @@
                         @else
                             <a href="{{ asset('storage/' . $pesan->file_path) }}" target="_blank" download
                                 class="flex items-center gap-2 mb-1.5 px-3 py-2 rounded-lg {{ $pesan->pengirim_id === auth()->id() ? 'bg-blue-700/60' : 'bg-gray-100' }}">
-                                <span>📎</span>
+                                <span></span>
                                 <span class="text-xs truncate">{{ $pesan->file_nama }}</span>
                             </a>
                         @endif
                     @endif
 
-                    @if ($pesan->voice_path)
-                        <audio src="{{ asset('storage/' . $pesan->voice_path) }}" class="w-full mb-1.5" controls
-                            preload="metadata"></audio>
-                    @endif
+@if ($pesan->voice_path)
+    <div class="custom-audio-player flex items-center gap-3 bg-teal-800 text-white rounded-lg p-2 mt-1 relative w-64" data-audio-url="{{ asset('storage/' . $pesan->voice_path) }}">
+        <div class="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-teal-900 shrink-0">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7c0-4.97-4.03-9-9-9z"/></svg>
+        </div>
+        <button type="button" class="audio-play hover:text-yellow-300">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="flex-1">
+            <input type="range" class="audio-slider w-full h-1 bg-teal-600 rounded-lg appearance-none cursor-pointer" value="0" min="0" max="100">
+            <div class="flex justify-between text-[10px] opacity-80">
+                <span class="audio-current">0:00</span>
+                <span class="audio-duration">0:00</span>
+            </div>
+        </div>
+        <button type="button" class="audio-menu-toggle px-1 hover:text-yellow-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <audio class="custom-audio hidden" preload="metadata"></audio>
+        
+        <!-- Dropdown Menu -->
+        <div class="message-context-menu hidden absolute top-full right-0 mt-1 w-48 rounded-lg bg-gray-900 text-white shadow-xl py-1 text-xs z-50">
+            <button type="button" data-context-action="info" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">ⓘ Message info</button>
+            <button type="button" data-context-action="reply" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">↩ Reply</button>
+            <button type="button" data-context-action="copy" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">▣ Copy</button>
+            <button type="button" data-context-action="forward" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">↠ Forward</button>
+            <button type="button" data-context-action="pin" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⚑ Pin</button>
+            <button type="button" data-context-action="star" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">☆ Star</button>
+            <button type="button" data-context-action="save" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⇩ Save as</button>
+            <button type="button" data-context-action="delete" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700 text-red-400">▢ Delete</button>
+        </div>
+    </div>
+@endif
+
+                    <div class="message-context-menu hidden absolute z-50 right-2 bottom-8 w-48 rounded-lg bg-gray-900 text-white shadow-xl py-1 text-xs">
+                        <button type="button" data-context-action="info" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">ⓘ Info</button>
+                        <button type="button" data-context-action="reply" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">↩ Reply</button>
+                        <button type="button" data-context-action="copy" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">▣ Copy</button>
+                        <button type="button" data-context-action="forward" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">↠ Forward</button>
+                        <button type="button" data-context-action="pin" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⚑ Pin</button>
+                        <button type="button" data-context-action="star" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">☆ Star</button>
+                        <button type="button" data-context-action="save" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⇩ Save</button>
+                        <button type="button" data-context-action="delete" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700 text-red-400">▢ Delete</button>
+                    </div>
 
                     @if ($pesan->isi_pesan)
                         <div class="flex justify-between items-start gap-3">
@@ -278,7 +318,7 @@
 
             inputFile.addEventListener('change', function() {
                 if (inputFile.files.length > 0) {
-                    filePreviewNama.textContent = '📎 ' + inputFile.files[0].name;
+                    filePreviewNama.textContent = ' ' + inputFile.files[0].name;
                     filePreview.classList.remove('hidden');
                 } else {
                     filePreview.classList.add('hidden');
@@ -316,6 +356,64 @@
                 }
                 return false;
             }
+
+            document.querySelectorAll('.custom-audio-player').forEach(player => {
+                const audio = player.querySelector('.custom-audio');
+                audio.src = player.dataset.audioUrl;
+                const playBtn = player.querySelector('.audio-play');
+                const slider = player.querySelector('.audio-slider');
+                const currentEl = player.querySelector('.audio-current');
+                const durationEl = player.querySelector('.audio-duration');
+                const menuToggle = player.querySelector('.audio-menu-toggle');
+                const menu = player.querySelector('.message-context-menu');
+
+                function formatTime(sec) {
+                    const m = Math.floor(sec / 60);
+                    const s = Math.floor(sec % 60);
+                    return m + ':' + (s < 10 ? '0' : '') + s;
+                }
+
+                audio.addEventListener('loadedmetadata', () => {
+                    durationEl.textContent = formatTime(audio.duration);
+                });
+
+                playBtn.addEventListener('click', () => {
+                    if (audio.paused) {
+                        audio.play();
+                        playBtn.innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                    } else {
+                        audio.pause();
+                        playBtn.innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                    }
+                });
+
+                audio.addEventListener('timeupdate', () => {
+                    if (audio.duration) {
+                        slider.value = (audio.currentTime / audio.duration) * 100;
+                        currentEl.textContent = formatTime(audio.currentTime);
+                    }
+                });
+
+                slider.addEventListener('input', () => {
+                    if (audio.duration) {
+                        audio.currentTime = (slider.value / 100) * audio.duration;
+                    }
+                });
+
+                audio.addEventListener('ended', () => {
+                    playBtn.innerHTML = '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                    slider.value = 0;
+                    currentEl.textContent = '0:00';
+                });
+
+                menuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.message-context-menu').forEach(m => {
+                        if (m !== menu) m.classList.add('hidden');
+                    });
+                    menu.classList.toggle('hidden');
+                });
+            });
 
             let voiceRecording = false;
             let mediaRecorder;
@@ -441,12 +539,25 @@
                         video.preload = 'metadata';
                         inner.appendChild(video);
                     } else if (isAudioFile(fileTipe, fileNama)) {
+                        const audioContainer = document.createElement('div');
+                        audioContainer.className = 'flex items-center gap-2';
                         const audio = document.createElement('audio');
                         audio.src = fileUrl;
                         audio.className = 'w-full mb-1.5';
                         audio.controls = true;
                         audio.preload = 'metadata';
-                        inner.appendChild(audio);
+                        audioContainer.appendChild(audio);
+                        
+                        if (milikSendiri) {
+                            const btnHapus = document.createElement('button');
+                            btnHapus.type = 'button';
+                            btnHapus.className = 'btn-voice-delete text-red-500 text-xs px-2 py-1 rounded hover:bg-red-100';
+                            btnHapus.textContent = 'Hapus';
+                            btnHapus.dataset.voicePath = fileUrl; // Simplifikasi, backend pake id dari data-id
+                            btnHapus.dataset.voiceId = id;
+                            audioContainer.appendChild(btnHapus);
+                        }
+                        inner.appendChild(audioContainer);
                     } else {
                         const a = document.createElement('a');
                         a.href = fileUrl;
@@ -455,7 +566,7 @@
                         a.className = 'flex items-center gap-2 mb-1.5 px-3 py-2 rounded-lg ' +
                             (milikSendiri ? 'bg-blue-700/60' : 'bg-gray-100');
                         const span1 = document.createElement('span');
-                        span1.textContent = '📎';
+                        span1.textContent = '';
                         const span2 = document.createElement('span');
                         span2.className = 'text-xs truncate';
                         span2.textContent = fileNama || 'File';
@@ -567,12 +678,17 @@
                 el.addEventListener('contextmenu', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    prosesHapus();
+                    const menu = el.querySelector('.message-context-menu');
+                    if (menu) {
+                        document.querySelectorAll('.message-context-menu').forEach(item => item.classList.add('hidden'));
+                        menu.classList.remove('hidden');
+                    }
                 });
 
                 el.addEventListener('touchstart', function() {
                     timerTekan = setTimeout(() => {
-                        prosesHapus();
+                        const menu = el.querySelector('.message-context-menu');
+                        if (menu) menu.classList.remove('hidden');
                     }, 600);
                 }, {
                     passive: true
@@ -778,6 +894,51 @@
                 input.placeholder = 'Tulis pesan...';
             }
 
+            document.addEventListener('click', async function(e) {
+                const actionButton = e.target.closest('[data-context-action]');
+                if (!actionButton) return;
+
+                e.stopPropagation();
+                const wrapper = actionButton.closest('[data-id]');
+                const action = actionButton.dataset.contextAction;
+                const menu = actionButton.closest('.message-context-menu');
+                if (menu) menu.classList.add('hidden');
+                if (!wrapper) return;
+
+                const id = wrapper.dataset.id;
+                const text = wrapper.dataset.isi || '';
+                const audio = wrapper.querySelector('audio');
+                const mediaUrl = audio?.src || wrapper.querySelector('a[download]')?.href;
+
+                if (action === 'info') {
+                    const response = await fetch(`/konsultasi/${konsultasiId}/pesan/${id}/info`);
+                    const data = await response.json();
+                    if (data.success) alert(`Pengirim: ${data.pesan.pengirim}\\nDikirim: ${data.pesan.waktu_kirim}\\nDibaca: ${data.pesan.dibaca_pada || 'Belum dibaca'}`);
+                } else if (action === 'reply') {
+                    setReply(id, text, wrapper.dataset.nama);
+                } else if (action === 'copy') {
+                    if (text) await navigator.clipboard.writeText(text);
+                } else if (action === 'pin' || action === 'star') {
+                    const response = await fetch(`/konsultasi/${konsultasiId}/pesan/${id}/${action}`, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken } });
+                    const data = await response.json();
+                    if (data.success) alert(`${action === 'pin' ? 'Pin' : 'Star'} ${data[`is_${action === 'pin' ? 'pinned' : 'starred'}`] ? 'aktif' : 'dinonaktifkan'}.`);
+                } else if (action === 'select') {
+                    wrapper.classList.toggle('ring-2');
+                    wrapper.classList.toggle('ring-blue-400');
+                } else if (action === 'save' && mediaUrl) {
+                    const link = document.createElement('a');
+                    link.href = mediaUrl;
+                    link.download = 'rekaman-suara';
+                    link.click();
+                } else if (action === 'share' && navigator.share) {
+                    await navigator.share({ text: text || 'Pesan dari konsultasi' });
+                } else if (action === 'open' && mediaUrl) {
+                    window.open(mediaUrl, '_blank');
+                } else if (action === 'delete') {
+                    hapusPesan(id);
+                }
+            });
+
             // Event delegation untuk semua tombol menu pesan
             document.addEventListener('click', function(e) {
                 const editMenu = e.target.closest('.edit-menu');
@@ -819,6 +980,17 @@
 
                     const menu = wrapper.querySelector('.message-menu');
                     if (menu) menu.classList.add('hidden');
+
+                    hapusPesan(wrapper.dataset.id);
+                    return;
+                }
+
+                if (e.target.classList.contains('btn-voice-delete')) {
+                    e.stopPropagation();
+                    const wrapper = e.target.closest('[data-id]');
+                    if (!wrapper) return;
+
+                    if (!confirm('Hapus rekaman suara ini?')) return;
 
                     hapusPesan(wrapper.dataset.id);
                     return;
