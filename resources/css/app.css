@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        font-size: 18px;
+    }
+
+    @media (max-width: 639px) {
+        html {
+            font-size: 17px;
+        }
+    }
+
+    @media (min-width: 1536px) {
+        html {
+            font-size: 19px;
+        }
+    }
+}
+
+@layer components {
+    button,
+    input,
+    select,
+    textarea {
+        min-height: 2.75rem;
+    }
+}
+
+@layer utilities {
+    /* Utility classes for bumping small text up */
+    .text-\[8px\] {
+        font-size: 0.80rem !important;
+        line-height: 1.4 !important;
+    }
+    .text-\[10px\] {
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+    }
+    .text-\[11px\] {
+        font-size: 0.88rem !important;
+        line-height: 1.4 !important;
+    }
+    .min-text-sm {
+        font-size: 1rem !important;
+        line-height: 1.5rem !important;
+    }
+    .min-text-xs {
+        font-size: 0.875rem !important;
+        line-height: 1.5rem !important;
+    }
+}
