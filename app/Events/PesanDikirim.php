@@ -42,6 +42,7 @@ class PesanDikirim implements ShouldBroadcast
             'pengirim_nama' => $this->pesan->pengirim->name,
             'waktu' => $this->pesan->created_at->format('H:i'),
             'file_url' => $this->pesan->file_path ? asset('storage/' . $this->pesan->file_path) : null,
+            'voice_url' => $this->pesan->voice_path ? asset('storage/' . $this->pesan->voice_path) : null,
             'file_nama' => $this->pesan->file_nama,
             'file_tipe' => $this->pesan->file_tipe,
             'balas_ke' => $this->pesan->balasKe ? [

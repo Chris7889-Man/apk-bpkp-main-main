@@ -33,9 +33,10 @@ class PesanController extends Controller
             'isi_pesan' => 'nullable|string|max:2000',
             'balas_ke_id' => 'nullable|exists:pesans,id',
             'file' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,ogg,mov,avi,mp3,wav,aac,flac,m4a',
+            'voice' => 'nullable|file|max:10240|mimes:webm,ogg,mp3,wav,m4a,aac',
         ]);
 
-        if (empty($validated['isi_pesan']) && !$request->hasFile('file')) {
+        if (empty($validated['isi_pesan']) && !$request->hasFile('file') && !$request->hasFile('voice')) {
             return response()->json(['success' => false, 'message' => 'Pesan atau file wajib diisi.'], 422);
         }
 
@@ -51,7 +52,10 @@ class PesanController extends Controller
             'balas_ke_id' => $validated['balas_ke_id'] ?? null,
         ];
 
-        if ($request->hasFile('file')) {
+        if ($request->hasFile('voice')) {
+            $voice = $request->file('voice');
+            $dataPesan['voice_path'] = $voice->store('voice', 'public');
+        } elseif ($request->hasFile('file')) {
             $file = $request->file('file');
             $path = $file->store('chat_files', 'public');
 
@@ -92,6 +96,7 @@ class PesanController extends Controller
             'success' => true,
             'id' => $pesan->id,
             'file_url' => $pesan->file_path ? asset('storage/' . $pesan->file_path) : null,
+            'voice_url' => $pesan->voice_path ? asset('storage/' . $pesan->voice_path) : null,
             'file_nama' => $pesan->file_nama,
             'file_tipe' => $pesan->file_tipe,
             'balas_ke' => $pesan->balasKe ? [

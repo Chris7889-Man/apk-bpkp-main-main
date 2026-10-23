@@ -18,6 +18,7 @@ class Pesan extends Model
         'file_path',
         'file_nama',
         'file_tipe',
+        'voice_path',
         'dibaca_at',
     ];
 
