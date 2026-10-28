@@ -473,6 +473,55 @@
                 }
             }
 
+            function pasangCustomAudioPlayer(player) {
+                const audio = player.querySelector('.custom-audio');
+                const playBtn = player.querySelector('.audio-play');
+                const slider = player.querySelector('.audio-slider');
+                const currentEl = player.querySelector('.audio-current');
+                const durationEl = player.querySelector('.audio-duration');
+                const menuToggle = player.querySelector('.audio-menu-toggle');
+                const menu = player.querySelector('.message-context-menu');
+                audio.src = player.dataset.audioUrl;
+
+                const formatTime = seconds => {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainder = Math.floor(seconds % 60);
+                    return `${minutes}:${remainder < 10 ? '0' : ''}${remainder}`;
+                };
+                const setPlayIcon = playing => {
+                    playBtn.innerHTML = playing ? '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>' : '<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                };
+
+                audio.addEventListener('loadedmetadata', () => {
+                    durationEl.textContent = formatTime(audio.duration);
+                });
+                playBtn.addEventListener('click', () => audio.paused ? audio.play() : audio.pause());
+                audio.addEventListener('play', () => setPlayIcon(true));
+                audio.addEventListener('pause', () => setPlayIcon(false));
+                audio.addEventListener('timeupdate', () => {
+                    if (!audio.duration) return;
+                    slider.value = audio.currentTime / audio.duration * 100;
+                    currentEl.textContent = formatTime(audio.currentTime);
+                });
+                slider.addEventListener('input', () => {
+                    if (audio.duration) audio.currentTime = slider.value / 100 * audio.duration;
+                });
+                audio.addEventListener('ended', () => {
+                    slider.value = 0;
+                    currentEl.textContent = '0:00';
+                    setPlayIcon(false);
+                });
+                menuToggle.addEventListener('click', event => {
+                    event.stopPropagation();
+                    document.querySelectorAll('.message-context-menu').forEach(item => {
+                        if (item !== menu) item.classList.add('hidden');
+                    });
+                    menu.classList.toggle('hidden');
+                });
+            }
+
+            document.querySelectorAll('.custom-audio-player').forEach(pasangCustomAudioPlayer);
+
             function buatBubble(id, isiPesan, waktu, pengirimId, namaPengirim, balasKe, fileUrl, fileNama,
             fileTipe) {
                 const milikSendiri = pengirimId === userId;
@@ -538,27 +587,33 @@
                         video.controls = true;
                         video.preload = 'metadata';
                         inner.appendChild(video);
-                    } else if (isAudioFile(fileTipe, fileNama)) {
-                        const audioContainer = document.createElement('div');
-                        audioContainer.className = 'flex items-center gap-2';
-                        const audio = document.createElement('audio');
-                        audio.src = fileUrl;
-                        audio.className = 'w-full mb-1.5';
-                        audio.controls = true;
-                        audio.preload = 'metadata';
-                        audioContainer.appendChild(audio);
-                        
-                        if (milikSendiri) {
-                            const btnHapus = document.createElement('button');
-                            btnHapus.type = 'button';
-                            btnHapus.className = 'btn-voice-delete text-red-500 text-xs px-2 py-1 rounded hover:bg-red-100';
-                            btnHapus.textContent = 'Hapus';
-                            btnHapus.dataset.voicePath = fileUrl; // Simplifikasi, backend pake id dari data-id
-                            btnHapus.dataset.voiceId = id;
-                            audioContainer.appendChild(btnHapus);
-                        }
-                        inner.appendChild(audioContainer);
+                if (fileUrl) {
+                    if (isGambarFile(fileTipe, fileNama)) {
+                        // ... existing ...
+                    } else if (isVideoFile(fileTipe, fileNama)) {
+                        // ... existing ...
+                } else if (isAudioFile(fileTipe, fileNama)) {
+                        const div = document.createElement('div');
+                        div.innerHTML = `<div class="custom-audio-player flex items-center gap-3 bg-teal-800 text-white rounded-lg p-2 mt-1 relative w-64">
+                            <div class="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-teal-900 shrink-0"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7c0-4.97-4.03-9-9-9z"/></svg></div>
+                            <button type="button" class="audio-play hover:text-yellow-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+                            <div class="flex-1"><input type="range" class="audio-slider w-full h-1 bg-teal-600 rounded-lg appearance-none cursor-pointer" value="0" min="0" max="100"><div class="flex justify-between text-[10px] opacity-80"><span class="audio-current">0:00</span><span class="audio-duration">0:00</span></div></div>
+                            <button type="button" class="audio-menu-toggle px-1 hover:text-yellow-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+                            <audio class="custom-audio hidden"></audio>
+                            <div class="message-context-menu hidden absolute top-full right-0 mt-1 w-48 rounded-lg bg-gray-900 text-white shadow-xl py-1 text-xs z-50">
+                                <button type="button" data-context-action="info" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">ⓘ Info</button>
+                                <button type="button" data-context-action="save" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⇩ Save</button>
+                                <button type="button" data-context-action="delete" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700 text-red-400">▢ Delete</button>
+                            </div>
+                        </div>`;
+                        const player = div.firstElementChild;
+                        player.dataset.audioUrl = fileUrl;
+                        inner.appendChild(player);
+                        pasangCustomAudioPlayer(player);
                     } else {
+                        // ... existing ...
+                    }
+                }
                         const a = document.createElement('a');
                         a.href = fileUrl;
                         a.target = '_blank';
@@ -833,8 +888,8 @@
                 const data = await res.json();
                 if (data.success) {
                     buatBubble(data.id, isiPesan, 'Baru saja', userId, namaSaya, data.balas_ke ||
-                        balasKeSaatIni, data.file_url || data.voice_url, data.file_nama, data
-                        .file_tipe);
+                        balasKeSaatIni, data.file_url || data.voice_url, data.file_nama || (data.voice_url ? 'Rekaman suara' : null), data
+                        .file_tipe || (data.voice_url ? 'audio/webm' : null));
                 }
             });
 
