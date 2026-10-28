@@ -185,9 +185,12 @@
 
     <div class="px-4 pt-2 bg-white border-t border-gray-100">
         <div id="file-preview"
-            class="hidden mb-2 bg-green-50 border-l-4 border-green-500 px-3 py-2 rounded-lg flex justify-between items-center">
-            <p class="text-xs text-gray-600 truncate" id="file-preview-nama"></p>
-            <button type="button" id="btn-batal-file" class="text-gray-400 hover:text-red-500 text-sm ml-2">✕</button>
+            class="hidden mb-2 bg-green-50 border-l-4 border-green-500 px-3 py-2 rounded-lg flex flex-col gap-1">
+            <div class="flex justify-between items-center">
+                <p class="text-xs font-semibold text-gray-700">Lampiran File:</p>
+                <button type="button" id="btn-batal-file" class="text-gray-400 hover:text-red-500 text-sm">✕</button>
+            </div>
+            <div id="file-preview-list" class="flex flex-col gap-1"></div>
         </div>
 
         <div id="reply-preview"
@@ -240,7 +243,7 @@
                         d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                 </svg>
             </button>
-            <input type="file" id="input-file" class="hidden"
+            <input type="file" id="input-file" class="hidden" multiple
                 accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip"
                 {{ $konsultasi->status === 'selesai' ? 'disabled' : '' }}>
             <input type="text" id="input-pesan" autocomplete="off"
@@ -317,8 +320,15 @@
             btnBatalReply.addEventListener('click', batalReply);
 
             inputFile.addEventListener('change', function() {
+                const list = document.getElementById('file-preview-list');
+                list.innerHTML = '';
                 if (inputFile.files.length > 0) {
-                    filePreviewNama.textContent = ' ' + inputFile.files[0].name;
+                    Array.from(inputFile.files).forEach(file => {
+                        const div = document.createElement('div');
+                        div.className = 'text-xs text-green-700 truncate';
+                        div.textContent = '• ' + file.name;
+                        list.appendChild(div);
+                    });
                     filePreview.classList.remove('hidden');
                 } else {
                     filePreview.classList.add('hidden');
@@ -832,18 +842,10 @@
                 if (statusSelesai) return;
 
                 const isiPesan = input.value.trim();
-
-                // Mode edit: simpan perubahan lalu kembali ke mode kirim
-                if (editTarget) {
-                    if (!isiPesan) return;
-                    const berhasil = await editPesan(editTarget, isiPesan);
-                    if (berhasil) batalEdit();
-                    return;
-                }
-
-                const file = inputFile.files[0] || null;
-
-                if (!isiPesan && !file && !voiceBlob) return;
+                const files = Array.from(inputFile.files);
+                
+                // Jika tidak ada apa-apa, batalkan
+                if (files.length === 0 && !isiPesan && !voiceBlob) return;
 
                 const balasKeIdSaatIni = replyTarget ? replyTarget.id : null;
                 const balasKeSaatIni = replyTarget ? {
@@ -851,37 +853,57 @@
                     pengirim_nama: replyTarget.nama
                 } : null;
 
+                // Reset UI
                 input.value = '';
                 inputFile.value = '';
                 filePreview.classList.add('hidden');
+                document.getElementById('file-preview-list').innerHTML = '';
                 batalReply();
 
-                const formData = new FormData();
-                if (isiPesan) formData.append('isi_pesan', isiPesan);
-                if (balasKeIdSaatIni) formData.append('balas_ke_id', balasKeIdSaatIni);
+                // Send voice (if any)
                 if (voiceBlob) {
+                    const formData = new FormData();
+                    if (isiPesan) formData.append('isi_pesan', isiPesan);
+                    if (balasKeIdSaatIni) formData.append('balas_ke_id', balasKeIdSaatIni);
                     formData.append('voice', voiceBlob, 'recording-' + Date.now() + '.webm');
                     voiceBlob = null;
-                } else if (file) {
-                    formData.append('file', file);
+
+                    const res = await fetch(`/konsultasi/${konsultasiId}/pesan`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Socket-ID': window.Echo ? window.Echo.socketId() : '',
+                        },
+                        body: formData,
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        buatBubble(data.id, isiPesan, 'Baru saja', userId, namaSaya, data.balas_ke || balasKeSaatIni, data.voice_url, 'Rekaman suara', 'audio/webm');
+                    }
                 }
 
-                const socketId = window.Echo ? window.Echo.socketId() : '';
+                // Send files one by one
+                for (let i = 0; i < files.length; i++) {
+                    const formData = new FormData();
+                    // Hanya kirim pesan di request pertama jika tidak ada voice
+                    if (i === 0 && !voiceBlob && isiPesan) formData.append('isi_pesan', isiPesan);
+                    if (i === 0 && !voiceBlob && balasKeIdSaatIni) formData.append('balas_ke_id', balasKeIdSaatIni);
+                    
+                    formData.append('file', files[i]);
 
-                const res = await fetch(`/konsultasi/${konsultasiId}/pesan`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Socket-ID': socketId,
-                    },
-                    body: formData,
-                });
+                    const res = await fetch(`/konsultasi/${konsultasiId}/pesan`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Socket-ID': window.Echo ? window.Echo.socketId() : '',
+                        },
+                        body: formData,
+                    });
 
-                const data = await res.json();
-                if (data.success) {
-                    buatBubble(data.id, isiPesan, 'Baru saja', userId, namaSaya, data.balas_ke ||
-                        balasKeSaatIni, data.file_url || data.voice_url, data.file_nama || (data.voice_url ? 'Rekaman suara' : null), data
-                        .file_tipe || (data.voice_url ? 'audio/webm' : null));
+                    const data = await res.json();
+                    if (data.success) {
+                        buatBubble(data.id, (i === 0 && !voiceBlob ? isiPesan : ''), 'Baru saja', userId, namaSaya, (i === 0 && !voiceBlob ? (data.balas_ke || balasKeSaatIni) : null), data.file_url, data.file_nama, data.file_tipe);
+                    }
                 }
             });
 
