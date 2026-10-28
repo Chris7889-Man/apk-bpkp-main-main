@@ -88,23 +88,56 @@
 
                     @if ($pesan->file_path)
                         @if ($pesan->isGambar())
-                            <a href="{{ asset('storage/' . $pesan->file_path) }}" target="_blank">
-                                <img src="{{ asset('storage/' . $pesan->file_path) }}"
-                                    class="rounded-lg max-w-full mb-1.5" alt="{{ $pesan->file_nama }}"
-                                    onerror="window.retryGambar(this)">
-                            </a>
+                            <div class="relative group/file">
+                                <a href="{{ asset('storage/' . $pesan->file_path) }}" target="_blank">
+                                    <img src="{{ asset('storage/' . $pesan->file_path) }}"
+                                        class="rounded-lg max-w-full mb-1.5" alt="{{ $pesan->file_nama }}"
+                                        onerror="window.retryGambar(this)">
+                                </a>
+                                <button type="button" class="absolute top-1 right-1 bg-gray-900/50 rounded-full p-1 text-white hover:bg-gray-900 message-context-menu-toggle"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+                                <div class="message-context-menu hidden absolute top-full right-0 mt-1 w-48 rounded-lg bg-gray-900 text-white shadow-xl py-1 text-xs z-50">
+                                    <button type="button" data-context-action="info" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">ⓘ Info</button>
+                                    <button type="button" data-context-action="save" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⇩ Save</button>
+                                    <button type="button" data-context-action="delete" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700 text-red-400">▢ Delete</button>
+                                </div>
+                            </div>
                         @elseif (str_starts_with($pesan->file_tipe, 'video/'))
-                            <video src="{{ asset('storage/' . $pesan->file_path) }}"
-                                class="rounded-lg max-w-full mb-1.5" controls preload="metadata"></video>
+                            <div class="relative group/file">
+                                <video src="{{ asset('storage/' . $pesan->file_path) }}"
+                                    class="rounded-lg max-w-full mb-1.5" controls preload="metadata"></video>
+                                <button type="button" class="absolute top-1 right-1 bg-gray-900/50 rounded-full p-1 text-white hover:bg-gray-900 message-context-menu-toggle"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+                                <div class="message-context-menu hidden absolute top-full right-0 mt-1 w-48 rounded-lg bg-gray-900 text-white shadow-xl py-1 text-xs z-50">
+                                    <button type="button" data-context-action="info" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">ⓘ Info</button>
+                                    <button type="button" data-context-action="save" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⇩ Save</button>
+                                    <button type="button" data-context-action="delete" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700 text-red-400">▢ Delete</button>
+                                </div>
+                            </div>
                         @elseif (str_starts_with($pesan->file_tipe, 'audio/'))
-                            <audio src="{{ asset('storage/' . $pesan->file_path) }}" class="w-full mb-1.5" controls
-                                preload="metadata"></audio>
+                            <div class="custom-audio-player flex items-center gap-3 bg-teal-800 text-white rounded-lg p-2 mt-1 relative w-64" data-audio-url="{{ asset('storage/' . $pesan->file_path) }}">
+                                <button type="button" class="audio-play hover:text-yellow-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+                                <div class="flex-1"><input type="range" class="audio-slider w-full h-1 bg-teal-600 rounded-lg appearance-none cursor-pointer" value="0" min="0" max="100"><div class="flex justify-between text-[10px] opacity-80"><span class="audio-current">0:00</span><span class="audio-duration">0:00</span></div></div>
+                                <button type="button" class="audio-menu-toggle px-1 hover:text-yellow-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+                                <audio class="custom-audio hidden"></audio>
+                                <div class="message-context-menu hidden absolute top-full right-0 mt-1 w-48 rounded-lg bg-gray-900 text-white shadow-xl py-1 text-xs z-50">
+                                    <button type="button" data-context-action="info" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">ⓘ Info</button>
+                                    <button type="button" data-context-action="save" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⇩ Save</button>
+                                    <button type="button" data-context-action="delete" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700 text-red-400">▢ Delete</button>
+                                </div>
+                            </div>
                         @else
-                            <a href="{{ asset('storage/' . $pesan->file_path) }}" target="_blank" download
-                                class="flex items-center gap-2 mb-1.5 px-3 py-2 rounded-lg {{ $pesan->pengirim_id === auth()->id() ? 'bg-blue-700/60' : 'bg-gray-100' }}">
-                                <span></span>
-                                <span class="text-xs truncate">{{ $pesan->file_nama }}</span>
-                            </a>
+                            <div class="relative group/file">
+                                <a href="{{ asset('storage/' . $pesan->file_path) }}" target="_blank" download
+                                    class="flex items-center gap-2 mb-1.5 px-3 py-2 rounded-lg {{ $pesan->pengirim_id === auth()->id() ? 'bg-blue-700/60' : 'bg-gray-100' }}">
+                                    <span>📄</span>
+                                    <span class="text-xs truncate">{{ $pesan->file_nama }}</span>
+                                </a>
+                                <button type="button" class="absolute top-1 right-1 bg-gray-900/50 rounded-full p-1 text-white hover:bg-gray-900 message-context-menu-toggle"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+                                <div class="message-context-menu hidden absolute top-full right-0 mt-1 w-48 rounded-lg bg-gray-900 text-white shadow-xl py-1 text-xs z-50">
+                                    <button type="button" data-context-action="info" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">ⓘ Info</button>
+                                    <button type="button" data-context-action="save" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700">⇩ Save</button>
+                                    <button type="button" data-context-action="delete" class="block w-full text-left px-3 py-1.5 hover:bg-gray-700 text-red-400">▢ Delete</button>
+                                </div>
+                            </div>
                         @endif
                     @endif
 
@@ -1009,8 +1042,21 @@
             });
 
             // Event delegation untuk semua tombol menu pesan
-            document.addEventListener('click', function(e) {
-                const editMenu = e.target.closest('.edit-menu');
+                document.addEventListener('click', function(e) {
+                    const toggle = e.target.closest('.message-context-menu-toggle, .audio-menu-toggle');
+                    if (toggle) {
+                        e.stopPropagation();
+                        const menu = toggle.parentElement.querySelector('.message-context-menu');
+                        if (menu) {
+                            document.querySelectorAll('.message-context-menu').forEach(m => {
+                                if (m !== menu) m.classList.add('hidden');
+                            });
+                            menu.classList.toggle('hidden');
+                        }
+                        return;
+                    }
+
+                    const editMenu = e.target.closest('.edit-menu');
                 if (editMenu) {
                     e.stopPropagation();
                     const wrapper = editMenu.closest('[data-id]');
