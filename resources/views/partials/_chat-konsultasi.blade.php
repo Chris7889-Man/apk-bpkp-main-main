@@ -587,12 +587,7 @@
                         video.controls = true;
                         video.preload = 'metadata';
                         inner.appendChild(video);
-                if (fileUrl) {
-                    if (isGambarFile(fileTipe, fileNama)) {
-                        // ... existing ...
-                    } else if (isVideoFile(fileTipe, fileNama)) {
-                        // ... existing ...
-                } else if (isAudioFile(fileTipe, fileNama)) {
+                    } else if (isAudioFile(fileTipe, fileNama)) {
                         const div = document.createElement('div');
                         div.innerHTML = `<div class="custom-audio-player flex items-center gap-3 bg-teal-800 text-white rounded-lg p-2 mt-1 relative w-64">
                             <div class="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-teal-900 shrink-0"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7c0-4.97-4.03-9-9-9z"/></svg></div>
@@ -611,9 +606,6 @@
                         inner.appendChild(player);
                         pasangCustomAudioPlayer(player);
                     } else {
-                        // ... existing ...
-                    }
-                }
                         const a = document.createElement('a');
                         a.href = fileUrl;
                         a.target = '_blank';
